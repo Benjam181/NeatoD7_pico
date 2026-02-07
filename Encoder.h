@@ -1,5 +1,4 @@
-#ifndef ENCODER_H
-#define ENCODER_H
+# pragma once
 
 #include "pico/stdlib.h"
 #include <atomic>
@@ -48,5 +47,3 @@ private:
     // Static instance for the callback
     static Encoder* instance_;
 };
-
-#endif // ENCODER_H

@@ -5,18 +5,17 @@
 int main() {
     stdio_init_all();
 
-    const uint ENCODER_PIN = 0; // Change according to your wiring
+    const uint ENCODER_PIN = 0;
 
-    // Create the encoder
     Encoder encoder(ENCODER_PIN);
 
     while (true) {
-        sleep_ms(100); // Measure every 100 ms
+        sleep_ms(100);
 
         uint32_t total_pulses = encoder.getPulseCount();
         float frequency = encoder.getFrequency();
 
-        printf("Total pulses: %u, Vitesse: %.1f Hz\n", 
+        printf("Total pulses: %u, Frequency: %.1f Hz\n", 
                total_pulses, frequency);
     }
 }
