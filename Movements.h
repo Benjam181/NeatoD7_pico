@@ -7,7 +7,7 @@
 
 class Movements {
   public:
-    Movements(Motor& leftMotor, Motor& rightMotor, Encoder& leftEncoder, Encoder& rightEncoder, PID& leftPID, PID& rightPID);
+    Movements(Motor& leftMotor, Motor& rightMotor, Encoder& leftEncoder, Encoder& rightEncoder, PID& pid);
     void MoveStraight(uint8_t target_speed);
     void Rotate(uint8_t target_angle);
     void Stop();
@@ -17,6 +17,5 @@ class Movements {
     Motor& rightMotor;
     Encoder& leftEncoder;
     Encoder& rightEncoder;
-    PID& leftPID;
-    PID& rightPID;
+    PID& pid;
 };

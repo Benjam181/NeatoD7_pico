@@ -2,6 +2,7 @@
 
 #include "pico/stdlib.h"
 #include <atomic>
+#include <map>
 
 class Encoder {
 public:
@@ -38,12 +39,10 @@ private:
     std::atomic<uint32_t> pulse_count_;
     uint32_t last_count_;
     absolute_time_t last_time_;
+    static std::map<uint, Encoder*> instances_;
 
     /**
      * @brief ISR callback called on rising edge
      */
     static void gpio_callback(uint gpio, uint32_t events);
-
-    // Static instance for the callback
-    static Encoder* instance_;
 };

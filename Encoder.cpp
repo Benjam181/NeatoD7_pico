@@ -1,7 +1,8 @@
 #include "Encoder.h"
+#include <stdio.h>
 
-// Static instance for the callback
-Encoder* Encoder::instance_ = nullptr;
+// Static map instance for the callback
+std::map<uint, Encoder*> Encoder::instances_;
 
 Encoder::Encoder(uint gpio_pin) 
     : pin_(gpio_pin), 
@@ -15,7 +16,7 @@ Encoder::Encoder(uint gpio_pin)
     gpio_pull_up(pin_);
 
     // Register this instance for the callback
-    instance_ = this;
+    instances_[pin_] = this;
 
     // Attach the ISR on rising edge
     gpio_set_irq_enabled_with_callback(pin_,
@@ -25,7 +26,7 @@ Encoder::Encoder(uint gpio_pin)
 Encoder::~Encoder() {
     // Disable the interrupt
     gpio_set_irq_enabled(pin_, GPIO_IRQ_EDGE_RISE, false);
-    instance_ = nullptr;
+    instances_.erase(pin_);
 }
 
 uint32_t Encoder::getPulseCount() const {
@@ -40,8 +41,9 @@ float Encoder::getFrequency() {
     int64_t dt_us = absolute_time_diff_us(last_time_, current_time);
     
     float frequency = 0.0f;
-    if (dt_us > 0) {
-        frequency = (float)delta_count / ((float)dt_us * 1e-6f);
+    if(dt_us > 0) {
+        float dt_seconds = (float)dt_us / 1000000.0f;
+        frequency = (float)delta_count / dt_seconds;
     }
     
     // Update for the next call
@@ -61,7 +63,8 @@ void Encoder::gpio_callback(uint gpio, uint32_t events) {
     (void)gpio;
     (void)events;
     
-    if (instance_ != nullptr) {
-        instance_->pulse_count_++;
+    auto it = instances_.find(gpio);
+    if (it != instances_.end() && it->second != nullptr) {
+        it->second->pulse_count_++;
     }
 }
