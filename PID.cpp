@@ -4,7 +4,7 @@
 // Constructor
 PID::PID(float kp, float ki, float kd, float dt, float u_min, float u_max)
     : kp(kp), ki(ki), kd(kd), dt(dt), u_min(u_min), u_max(u_max),
-      integral(0.0f), previous_error(0.0f), anti_windup(100.0f) {
+      integral(0.0f), previous_error(0.0f), anti_windup(255.0f) {
 }
 
 uint8_t PID::compute(uint8_t setpoint, uint8_t measured_value) {
@@ -51,7 +51,6 @@ void PID::setTimeStep(float dt) {
     this->dt = dt;
 }
 
-int32_t PID::low_pass_filter(int32_t input, int32_t previous_output, float alpha) {
-    // Apply a simple low-pass filter
-    return (int32_t)(alpha * input + (1.0f - alpha) * previous_output);
+uint8_t PID::low_pass_filter(uint8_t input, uint8_t previous_output, float alpha) {
+    return (uint8_t)(alpha * input + (1.0f - alpha) * previous_output);
 }

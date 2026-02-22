@@ -29,11 +29,11 @@ Encoder::~Encoder() {
     instances_.erase(pin_);
 }
 
-uint32_t Encoder::getPulseCount() const {
+uint32_t Encoder::GetPulseCount() const {
     return pulse_count_.load();
 }
 
-float Encoder::getFrequency() {
+uint8_t Encoder::GetMotorSpeed() {
     uint32_t current_count = pulse_count_.load();
     uint32_t delta_count = current_count - last_count_;
     
@@ -50,13 +50,29 @@ float Encoder::getFrequency() {
     last_count_ = current_count;
     last_time_ = current_time;
     
-    return frequency;
+    return FrequencyToMotorSpeed(frequency);
 }
 
-void Encoder::reset() {
+void Encoder::Reset() {
     pulse_count_.store(0);
     last_count_ = 0;
     last_time_ = get_absolute_time();
+}
+
+uint8_t Encoder::FrequencyToMotorSpeed(float frequency) {
+    // Max frequency at 12V: 360 Hz
+    // Linear mapping: 0-360 Hz -> 0-255 motorspeed
+    if (frequency <= 0.0f) {
+        return 0;
+    }
+    
+    float motorspeed_float = (frequency / 360.0f) * 255.0f;
+    
+    if (motorspeed_float > 255.0f) {
+        return 255;
+    }
+    
+    return (uint8_t)motorspeed_float;
 }
 
 void Encoder::gpio_callback(uint gpio, uint32_t events) {

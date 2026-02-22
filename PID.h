@@ -29,5 +29,5 @@ public:
     // Set time step
     void setTimeStep(float dt);
 
-    int32_t low_pass_filter(int32_t input, int32_t previous_output, float alpha);
+    uint8_t low_pass_filter(uint8_t input, uint8_t previous_output, float alpha);
 };
