@@ -42,7 +42,7 @@ pico_sdk_init()
 add_executable(Motorisation 
     Motorisation.cpp
     Encoder.cpp
-    Motor.cpp
+    Wheel.cpp
     PID.cpp
     Movements.cpp
 )

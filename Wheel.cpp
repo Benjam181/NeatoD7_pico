@@ -1,10 +1,10 @@
-#include "Motor.h"
+#include "Wheel.h"
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 
 // TODO: test it
 
-Motor::Motor(uint8_t pwmPin, uint8_t dirPin) 
+Wheel::Wheel(uint8_t pwmPin, uint8_t dirPin) 
     : pwmPin(pwmPin), dirPin(dirPin) {
     // Initialize the GPIO pins for PWM and direction control
     gpio_init(pwmPin);
@@ -21,7 +21,7 @@ Motor::Motor(uint8_t pwmPin, uint8_t dirPin)
     gpio_set_dir(dirPin, GPIO_OUT);
 }
 
-void Motor::Rotate(uint8_t speed, bool direction) {
+void Wheel::Rotate(uint8_t speed, bool direction) {
     // Set the direction pin based on the desired direction
     gpio_put(dirPin, direction);
     
@@ -29,7 +29,7 @@ void Motor::Rotate(uint8_t speed, bool direction) {
     pwm_set_chan_level(sliceNum, PWM_CHAN_A, speed * 49); // Scale 0-255 to 0-12499
 }
 
-void Motor::Stop() {
+void Wheel::Stop() {
     // Set the PWM level to 0 to stop the motor
     pwm_set_chan_level(sliceNum, PWM_CHAN_A, 0);
 }

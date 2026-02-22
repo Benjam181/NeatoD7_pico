@@ -4,9 +4,9 @@
 
 // TODO : test it
 
-Movements::Movements(Motor& leftMotor, Motor& rightMotor, Encoder& leftEncoder, Encoder& rightEncoder, PID& pid)
-    : leftMotor(leftMotor),
-      rightMotor(rightMotor),
+Movements::Movements(Wheel& leftWheel, Wheel& rightWheel, Encoder& leftEncoder, Encoder& rightEncoder, PID& pid)
+    : leftWheel(leftWheel),
+      rightWheel(rightWheel),
       leftEncoder(leftEncoder),
       rightEncoder(rightEncoder),
       pid(pid) {
@@ -20,8 +20,8 @@ void Movements::MoveStraight(uint8_t target_speed) {
     printf("Target Speed: %u | Left Speed: %.2f Hz | Right Speed: %.2f Hz\n", 
            target_speed, left_speed, right_speed);
     
-    // Right motor runs at target speed directly (reference motor)
-    rightMotor.Rotate(target_speed, true);
+    // Right Wheel runs at target speed directly (reference Wheel)
+    rightWheel.Rotate(target_speed, true);
     
     // Calculate speed error (in Hz)
     float speed_error = right_speed - left_speed;
@@ -35,10 +35,10 @@ void Movements::MoveStraight(uint8_t target_speed) {
     // Apply correction to target speed
     int16_t left_pwm = target_speed;
     if (speed_error > 0) {
-        // Left motor is slower, increase PWM
+        // Left Wheel is slower, increase PWM
         left_pwm = target_speed + correction;
     } else {
-        // Left motor is faster, decrease PWM
+        // Left Wheel is faster, decrease PWM
         left_pwm = target_speed - correction;
     }
     
@@ -51,31 +51,31 @@ void Movements::MoveStraight(uint8_t target_speed) {
     printf("Speed Error: %.2f Hz | Correction: %u | Left PWM: %u\n", 
            speed_error, correction, left_pwm_int);
     
-    // Move left motor with corrected speed
-    leftMotor.Rotate(left_pwm_int, false);
+    // Move left Wheel with corrected speed
+    leftWheel.Rotate(left_pwm_int, false);
 }
 
 void Movements::Rotate(uint8_t target_angle) {
-    // For rotation, one motor goes forward, the other backward
+    // For rotation, one Wheel goes forward, the other backward
     // The speed can be adjusted based on the target angle
     
     uint8_t rotation_speed = 100; // Default rotation speed
     
     if (target_angle > 180) {
-        // Rotate right - left motor forward, right motor backward
-        leftMotor.Rotate(rotation_speed, true);
-        rightMotor.Rotate(rotation_speed, false);
+        // Rotate right - left Wheel forward, right Wheel backward
+        leftWheel.Rotate(rotation_speed, true);
+        rightWheel.Rotate(rotation_speed, false);
     } else {
-        // Rotate left - right motor forward, left motor backward
-        leftMotor.Rotate(rotation_speed, false);
-        rightMotor.Rotate(rotation_speed, true);
+        // Rotate left - right Wheel forward, left Wheel backward
+        leftWheel.Rotate(rotation_speed, false);
+        rightWheel.Rotate(rotation_speed, true);
     }
 }
 
 void Movements::Stop() {
-    // Stop both motors
-    leftMotor.Stop();
-    rightMotor.Stop();
+    // Stop both Wheels
+    leftWheel.Stop();
+    rightWheel.Stop();
     
     // Reset PID to avoid integral windup
     pid.reset();

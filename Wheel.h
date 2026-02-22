@@ -2,9 +2,9 @@
 
 #include <cstdint>
 
-class Motor {
+class Wheel {
   public:
-    Motor(uint8_t pwmPin, uint8_t dirPin);
+    Wheel(uint8_t pwmPin, uint8_t dirPin);
     void Rotate(uint8_t speed, bool clockwise);
     void Stop();
 
