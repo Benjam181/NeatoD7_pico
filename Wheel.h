@@ -21,4 +21,5 @@ class Wheel {
     Encoder& encoder;
     PID& pid;
     uint8_t previous_speed; // For low-pass filtering
+    uint8_t current_speed;
 };

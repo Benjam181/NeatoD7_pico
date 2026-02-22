@@ -4,56 +4,44 @@
 
 // TODO : test it
 
-Movements::Movements(Wheel& leftWheel, Wheel& rightWheel, Encoder& leftEncoder, Encoder& rightEncoder, PID& pid)
+Movements::Movements(Wheel& leftWheel, Wheel& rightWheel, PID& pid)
     : leftWheel(leftWheel),
       rightWheel(rightWheel),
-      leftEncoder(leftEncoder),
-      rightEncoder(rightEncoder),
       pid(pid) {
 }
 
 void Movements::MoveStraight(uint8_t target_speed) {
     // Get current speed from both encoders (frequency in Hz)
-    /*
-     uint8_t left_speed = leftEncoder.GetMotorSpeed();
-    uint8_t right_speed = rightEncoder.GetMotorSpeed();
-
-    // printf("Target Speed: %u | Left Speed: %u | Right Speed: %u\n", 
-    //        target_speed, left_speed, right_speed);
+     uint8_t left_speed = leftWheel.GetCurrentSpeed();
+    uint8_t right_speed = rightWheel.GetCurrentSpeed();
     
     // Right Wheel runs at target speed directly (reference Wheel)
-    */
     rightWheel.SetTargetSpeed(target_speed, false);
-    /*
-    // Calculate speed error
     int16_t speed_error = right_speed - left_speed;
-    speed_error = pid.low_pass_filter((int16_t)(speed_error * 100), 0, 0.5f) / 100.0f; // Scale and filter the error
+    // speed_error = pid.low_pass_filter((int16_t)(speed_error * 100), 0, 0.5f) / 100.0f; // Scale and filter the error
     
     uint8_t error_scaled = (uint8_t)fminf(fabs(speed_error), 255.0f);
     uint8_t correction = pid.compute(error_scaled, 0);
     
-    // Apply correction to target speed
     int16_t left_pwm = target_speed;
     if (speed_error > 0) {
-        // Left Wheel is slower, increase PWM
         left_pwm = target_speed + correction;
     } else {
-        // Left Wheel is faster, decrease PWM
         left_pwm = target_speed - correction;
     }
     
-    // Clamp to valid PWM range
     if (left_pwm < 0) left_pwm = 0;
     if (left_pwm > 255) left_pwm = 255;
 
     auto left_pwm_int = (uint8_t)left_pwm;
     
-    // printf("Speed Error: %.2f Hz | Correction: %u | Left PWM: %u\n", 
-    //        speed_error, correction, left_pwm_int);
+    printf(">Speed_Error:%.2f\n>Correction:%u\n>PWM: %u\n", 
+            speed_error, correction, left_pwm_int);
+
+    printf(">Target_Speed:%u\n>Left_Speed:%u\n>Right_Speed:%u\n", 
+           target_speed, left_speed, right_speed);
     
-    // Move left Wheel with corrected speed
-    */
-    leftWheel.SetTargetSpeed(target_speed, false);
+    leftWheel.SetTargetSpeed(left_pwm_int, false);
 }
 
 void Movements::Rotate(uint8_t target_angle) {

@@ -33,11 +33,12 @@ void Wheel::Rotate(uint8_t speed, bool direction) {
 }
 
 void Wheel::SetTargetSpeed(uint8_t target_speed, bool clockwise) {
-    uint8_t current_speed = GetCurrentSpeed();
+    current_speed = pid.low_pass_filter(encoder.GetMotorSpeed(), previous_speed, 0.05f);
+    previous_speed = current_speed;
     uint8_t pid_output = pid.compute(target_speed, current_speed);
     Rotate(pid_output, clockwise);
-    printf(">Target_speed:%u\n>Current_Speed:%u\n>PID_Output:%u\n", 
-           target_speed, current_speed, pid_output);
+    /*printf(">Target_speed:%u\n>Current_Speed:%u\n>PID_Output:%u\n", 
+           target_speed, current_speed, pid_output);*/
 }
 
 void Wheel::Stop() {
@@ -47,8 +48,5 @@ void Wheel::Stop() {
 }
 
 uint8_t Wheel::GetCurrentSpeed() {
-    uint8_t current_speed = encoder.GetMotorSpeed();
-    current_speed = pid.low_pass_filter(current_speed, previous_speed, 0.05f);
-    previous_speed = current_speed;
     return current_speed;
 }

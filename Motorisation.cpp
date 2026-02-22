@@ -25,9 +25,9 @@ int main() {
   // Create PID controllers (kp, ki, kd, dt, u_min, u_max)
   // todo: tune these parameters
   // todo: set a PID for each wheel
-  PID pid(2.0f, 1000.0f, 0.0f, 0.1f, 0.0f, 255.0f);
+  PID pid(2.0f, 0.1f, 0.0f, 0.01f, 0.0f, 255.0f);
 
-  Movements movements(leftWheel, rightWheel, leftEncoder, rightEncoder, pid);
+  Movements movements(leftWheel, rightWheel, pid);
 
   while (true) {
     movements.MoveStraight(100); // Move forward at speed 255
