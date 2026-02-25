@@ -7,7 +7,8 @@
 
 Wheel::Wheel(uint8_t pwmPin1, uint8_t pwmPin2, Encoder& encoder, PID& pid) 
     : pwmPin1(pwmPin1), pwmPin2(pwmPin2), encoder(encoder), pid(pid), 
-      last_direction(true), direction_initialized(false) {
+    previous_speed(0), current_speed(0), target_speed(0), target_clockwise(true), target_initialized(false),
+    last_direction(true), direction_initialized(false) {
     // Initialize PWM pin 1
     gpio_init(pwmPin1);
     gpio_set_dir(pwmPin1, GPIO_OUT);
@@ -60,10 +61,22 @@ void Wheel::Rotate(uint8_t speed, bool clockwise) {
 }
 
 void Wheel::SetTargetSpeed(uint8_t target_speed, bool clockwise) {
-    current_speed = pid.low_pass_filter(encoder.GetMotorSpeed(), previous_speed, 0.05f);
-    previous_speed = current_speed;
-    uint8_t pid_output = pid.compute(target_speed, current_speed);
-    Rotate(pid_output, clockwise);
+    this->target_speed.store(target_speed);
+    this->target_clockwise.store(clockwise);
+    this->target_initialized.store(true);
+}
+
+void Wheel::UpdateControl() {
+    if (!target_initialized.load()) {
+        return;
+    }
+
+    uint8_t measured_speed = pid.low_pass_filter(encoder.GetMotorSpeed(), previous_speed, 0.05f);
+    previous_speed = measured_speed;
+    current_speed.store(measured_speed);
+
+    uint8_t pid_output = pid.compute(target_speed.load(), measured_speed);
+    Rotate(pid_output, target_clockwise.load());
 }
 
 void Wheel::Stop() {
@@ -71,9 +84,17 @@ void Wheel::Stop() {
     pwm_set_chan_level(sliceNum1, pwmChannel1, 0);
     pwm_set_chan_level(sliceNum2, pwmChannel2, 0);
     pid.reset();
+    target_speed.store(0);
+    target_initialized.store(false);
+    current_speed.store(0);
+    previous_speed = 0;
     direction_initialized = false; // Reset direction tracking
 }
 
 uint8_t Wheel::GetCurrentSpeed() {
-    return current_speed;
+    return current_speed.load();
+}
+
+uint32_t Wheel::GetPulseCount() const {
+    return encoder.GetPulseCount();
 }

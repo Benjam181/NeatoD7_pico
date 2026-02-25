@@ -1,9 +1,16 @@
 #include "pico/stdlib.h"
+#include "pico/time.h"
 #include "Encoder.h"
 #include "Wheel.h"
 #include "Movements.h"
 #include "PID.h"
 #include <stdio.h>
+
+static bool pid_timer_callback(repeating_timer_t* timer) {
+  auto* movements = static_cast<Movements*>(timer->user_data);
+  movements->UpdateControlLoop();
+  return true;
+}
 
 int main() {
   stdio_init_all();
@@ -23,11 +30,33 @@ int main() {
   Wheel rightWheel(RIGHT_WHEEL_PWM1_PIN, RIGHT_WHEEL_PWM2_PIN, rightEncoder, rightPID);
 
   Movements movements(leftWheel, rightWheel);
+  repeating_timer_t pidTimer;
+
+  if (!add_repeating_timer_ms(-10, pid_timer_callback, &movements, &pidTimer)) {
+    while (true) {
+      sleep_ms(1000);
+    }
+  }
+
+  movements.Rotate(270); 
+
+  sleep_ms(5000);
+
+  movements.MoveStraight(150, true);
+
+  sleep_ms(5000);
+
+  movements.Rotate(-270);
+
+  sleep_ms(5000);
+
+  movements.MoveStraight(255, false);
+
+  sleep_ms(5000);
+
+  movements.Stop();
 
   while (true) {
-    // movements.MoveStraight(100, true); // Move forward at speed 255
-    movements.Rotate(90); // Rotate 90 degrees to the right
-
-    sleep_ms(10);
+    sleep_ms(100);
   }
 }

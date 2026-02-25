@@ -6,34 +6,66 @@
 
 Movements::Movements(Wheel& leftWheel, Wheel& rightWheel)
     : leftWheel(leftWheel),
-      rightWheel(rightWheel) {
+      rightWheel(rightWheel),
+      rotationActive(false),
+      rotationClockwise(true),
+      leftStartPulses(0),
+      rightStartPulses(0),
+      targetRotationPulses(0) {
 }
 
 void Movements::MoveStraight(uint8_t target_speed, bool direction) {
-    // todo set a PID if robot don't move straight
+    rotationActive.store(false);
     rightWheel.SetTargetSpeed(target_speed, direction);
     leftWheel.SetTargetSpeed(target_speed, direction);
 }
 
-void Movements::Rotate(uint8_t target_angle) {
-    // For rotation, one Wheel goes forward, the other backward
-    // The speed can be adjusted based on the target angle
-    
-    uint8_t rotation_speed = 100; // Default rotation speed
-    
-    if (target_angle > 180) {
-        // Rotate right - left Wheel forward, right Wheel backward
-        leftWheel.SetTargetSpeed(rotation_speed, true);
-        rightWheel.SetTargetSpeed(rotation_speed, false);
+void Movements::Rotate(int16_t target_angle) {
+    if (target_angle == 0) {
+        Stop();
+        return;
+    }
+
+    bool clockwise = target_angle > 0;
+    uint32_t target_pulses = static_cast<uint32_t>(std::roundf(std::fabs(static_cast<float>(target_angle)) * pulsesPerDegree));
+    if (target_pulses == 0) {
+        target_pulses = 1;
+    }
+
+    leftStartPulses.store(leftWheel.GetPulseCount());
+    rightStartPulses.store(rightWheel.GetPulseCount());
+    targetRotationPulses.store(target_pulses);
+    rotationClockwise.store(clockwise);
+    rotationActive.store(true);
+
+    if (clockwise) {
+        leftWheel.SetTargetSpeed(rotationSpeed, true);
+        rightWheel.SetTargetSpeed(rotationSpeed, false);
     } else {
-        // Rotate left - right Wheel forward, left Wheel backward
-        leftWheel.SetTargetSpeed(rotation_speed, false);
-        rightWheel.SetTargetSpeed(rotation_speed, true);
+        leftWheel.SetTargetSpeed(rotationSpeed, false);
+        rightWheel.SetTargetSpeed(rotationSpeed, true);
     }
 }
 
+void Movements::UpdateControlLoop() {
+    if (rotationActive.load()) {
+        uint32_t left_progress = leftWheel.GetPulseCount() - leftStartPulses.load();
+        uint32_t right_progress = rightWheel.GetPulseCount() - rightStartPulses.load();
+        uint32_t average_progress = (left_progress + right_progress) / 2;
+
+        if (average_progress >= targetRotationPulses.load()) {
+            Stop();
+            return;
+        }
+    }
+
+    leftWheel.UpdateControl();
+    rightWheel.UpdateControl();
+}
+
 void Movements::Stop() {
-    // Stop both Wheels
+    rotationActive.store(false);
+    targetRotationPulses.store(0);
     leftWheel.Stop();
     rightWheel.Stop();
 }
